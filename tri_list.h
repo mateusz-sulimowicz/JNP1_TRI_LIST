@@ -4,6 +4,7 @@
 #include <initializer_list>
 #include <variant>
 #include <vector>
+#include <ranges>
 #include "tri_list_concepts.h"
 #include <iostream>
 
@@ -21,6 +22,76 @@ class tri_list {
     using t1_modifier_t = std::function<T1(T1)>;
     using t2_modifier_t = std::function<T2(T2)>;
     using t3_modifier_t = std::function<T3(T3)>;
+
+    class iterator {
+        using iter_t = typename std::vector<var_t>::const_iterator;
+        iter_t it;
+    public:
+        using iterator_category = std::bidirectional_iterator_tag;
+        using difference_type   = std::iter_difference_t<iter_t>;
+        using value_type        = var_t;
+        using pointer           = var_t;
+        using reference         = var_t;
+
+        explicit iterator(t1_modifier_t m1,
+                          t2_modifier_t m2,
+                          t3_modifier_t m3,
+                          iter_t original) noexcept
+                : m1(m1), m2(m2), m3(m3), it(original) {}
+
+        iterator &operator++() noexcept {
+            ++it;
+            return *this;
+        }
+
+        iterator operator++(int) noexcept {
+            iterator retval = *this;
+            ++(*this);
+            return retval;
+        }
+
+        iterator &operator--() noexcept {
+            --it;
+            return *this;
+        }
+
+        iterator operator--(int) noexcept {
+            iterator retval = *this;
+            --(*this);
+            return retval;
+        }
+
+        bool operator==(const iterator &other) const noexcept {
+            return it == other.it;
+        }
+
+        bool operator!=(const iterator &other) const noexcept {
+            return !(*this == other);
+        }
+
+        reference operator*() const noexcept {
+            return modify(*it);
+        }
+
+        pointer operator->() const noexcept {
+            return modify(*it);
+        }
+    private:
+        t1_modifier_t m1;
+        t2_modifier_t m2;
+        t3_modifier_t m3;
+
+        var_t modify(var_t v) const {
+            if (std::holds_alternative<T1>(v)) {
+                return var_t{m1(std::get<T1>(v))};
+            } else if (std::holds_alternative<T2>(v)) {
+                return var_t{m2(std::get<T2>(v))};
+            } else {
+                return var_t{m3(std::get<T3>(v))};
+            }
+        }
+    };
+
 public:
     tri_list() = default;
 
@@ -35,9 +106,9 @@ public:
     void modify_only(F m = F{}) {
         if constexpr (std::is_same_v<T, T1>) {
             m1 = compose<T>(m, m1);
-        } else if constexpr(std::is_same_v<T, T2>)
+        } else if constexpr (std::is_same_v<T, T2>) {
             m2 = compose<T>(m, m2);
-        else {
+        } else if constexpr (std::is_same_v<T, T3>) {
             m3 = compose<T>(m, m3);
         }
     }
@@ -61,15 +132,11 @@ public:
     }
 
     auto begin() {
-        return (content | std::views::transform([this](var_t v) {
-            return var_t{m1(std::get<T1>(v))};
-        })).begin();
+        return iterator(m1, m2, m3, content.cbegin());
     }
 
     auto end() {
-        return (content | std::views::transform([this](var_t v) {
-            return var_t{m1(std::get<T1>(v))};
-        })).end();
+        return iterator(m1, m2, m3, content.cend());
     }
 
 private:

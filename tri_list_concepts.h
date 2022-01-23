@@ -19,7 +19,7 @@ concept modifier = requires (F f, T t) {
 template <typename TriList, typename T1, typename T2, typename T3>
 concept is_tri_list_valid = requires (TriList l) {
     {l} -> std::convertible_to<tri_list<T1, T2, T3>>;
-    {l} -> std::ranges::viewable_range;
+    {l} -> std::ranges::range;
     {*l.begin()} -> std::same_as<std::variant<T1, T2, T3>>;
     {l.template range_over<T1>()} -> std::ranges::view;
 };

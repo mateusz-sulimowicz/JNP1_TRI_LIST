@@ -9,11 +9,11 @@
 #include <iostream>
 
 template<typename T>
-static auto identity = [](T x) { return x; };
+constinit static const auto identity = [](T x) { return x; };
 
 template<typename T>
-auto compose(modifier<T> auto f, modifier<T> auto g) {
-    return [=](T x) { return f(g(x)); };
+std::function<T(T)> compose(modifier<T> auto f, modifier<T> auto g) {
+    return [&f, &g](T x) { return f(g(x)); };
 };
 
 template<typename T1, typename T2, typename T3>

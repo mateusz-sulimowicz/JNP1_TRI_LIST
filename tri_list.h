@@ -17,6 +17,7 @@ std::function<T(T)> compose(modifier<T> auto f, modifier<T> auto g) {
 };
 
 template<typename T1, typename T2, typename T3>
+requires (!std::is_same<T1, T2>() && !std::is_same<T1, T3>() && !std::is_same<T2, T3>())
 class tri_list {
     using var_t = std::variant<T1, T2, T3>;
     using t1_modifier_t = std::function<T1(T1)>;

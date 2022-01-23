@@ -6,6 +6,7 @@
 #include <variant>
 
 template <typename T1, typename T2, typename T3>
+requires (!std::is_same<T1, T2>() && !std::is_same<T1, T3>() && !std::is_same<T2, T3>())
 class tri_list;
 
 // implementation provided to students

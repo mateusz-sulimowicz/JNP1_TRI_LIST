@@ -99,11 +99,13 @@ public:
     tri_list(std::initializer_list<var_t> list) : content(list) {}
 
     template<typename T>
+    requires ((std::is_same_v<T, T1> != std::is_same_v<T, T1>) != std::is_same_v<T, T1>)
     void push_back(const T &t) {
         content.push_back(var_t{t});
     }
 
     template<typename T, modifier<T> F>
+    requires ((std::is_same_v<T, T1> != std::is_same_v<T, T1>) != std::is_same_v<T, T1>)
     void modify_only(F m = F{}) {
         if constexpr (std::is_same_v<T, T1>) {
             m1 = compose<T>(m, m1);
@@ -115,6 +117,7 @@ public:
     }
 
     template<typename T>
+    requires ((std::is_same_v<T, T1> != std::is_same_v<T, T1>) != std::is_same_v<T, T1>)
     void reset() {
         if constexpr(std::is_same_v<T, T1>) {
             m1 = identity<T1>;
@@ -126,6 +129,7 @@ public:
     }
 
     template<typename T>
+    requires ((std::is_same_v<T, T1> != std::is_same_v<T, T1>) != std::is_same_v<T, T1>)
     auto range_over() {
         return content
                | std::views::filter([](var_t v) { return std::holds_alternative<T>(v); })

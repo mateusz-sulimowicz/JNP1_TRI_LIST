@@ -5,8 +5,8 @@
 #include <variant>
 #include <vector>
 #include <ranges>
+#include <functional>
 #include "tri_list_concepts.h"
-#include <iostream>
 
 template<typename T>
 constinit static const auto identity = [](T x) { return x; };

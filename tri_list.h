@@ -21,7 +21,10 @@ constinit static const auto identity = [](T x) { return x; };
 
 template<typename T, modifier<T> F, modifier<T> G>
 std::function<T(T)> compose(F f, G g) {
-    return [=](T x) { return f(g(x)); };
+    return [=](T x) {
+        F f1 = f;
+        G g1 = g;
+        return f1(g1(x)); };
 };
 
 template<typename T1, typename T2, typename T3>
@@ -32,12 +35,11 @@ class tri_list {
     using mod = std::function<T(T)>;
 
     class iterator {
-        using iter_t = typename std::vector<var_t>::iterator;
+        using iter_t = typename std::vector<var_t>::const_iterator;
     public:
         using iterator_category = std::forward_iterator_tag;
         using difference_type = std::iter_difference_t<iter_t>;
         using value_type = var_t;
-        using pointer = var_t;
         using reference = var_t;
 
         iterator() = default;
@@ -76,19 +78,15 @@ class tri_list {
             return !(*this == other);
         }
 
-        reference operator*() const noexcept {
-            return modify(*it);
-        }
-
-        pointer operator->() const noexcept {
-            return modify(*it);
+        var_t operator*() const noexcept {
+            return get_modified(*it);
         }
 
     private:
         std::tuple<mod<T1>, mod<T2>, mod<T3>> modifiers = {identity<T1>, identity<T2>, identity<T3>};
-        iter_t it = std::vector<var_t>().begin();
+        iter_t it = std::vector<var_t>().cbegin();
 
-        var_t modify(var_t v) const {
+        var_t get_modified(var_t v) const {
             if (std::holds_alternative<T1>(v)) {
                 return var_t{std::get<mod<T1>>(modifiers)(std::get<T1>(v))};
             } else if (std::holds_alternative<T2>(v)) {
@@ -120,18 +118,18 @@ public:
     }
 
     template<one_of<T1, T2, T3> T>
-    auto range_over() {
+    auto range_over() const {
         return content
                | std::views::filter([](var_t v) { return std::holds_alternative<T>(v); })
                | std::views::transform([this](var_t v) { return std::get<mod<T>>(modifiers)(std::get<T>(v)); });
     }
 
-    auto begin() {
-        return iterator(modifiers, content.begin());
+    auto begin() const {
+        return iterator(modifiers, content.cbegin());
     }
 
-    auto end() {
-        return iterator(modifiers, content.end());
+    auto end() const {
+        return iterator(modifiers, content.cend());
     }
 
 private:

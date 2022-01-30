@@ -21,10 +21,8 @@ constinit static const auto identity = [](T x) { return x; };
 
 template<typename T, modifier<T> F, modifier<T> G>
 std::function<T(T)> compose(F f, G g) {
-    return [=](T x) {
-        F f1 = f;
-        G g1 = g;
-        return f1(g1(x));
+    return [=](T x) mutable {
+        return f(g(x));
     };
 };
 
